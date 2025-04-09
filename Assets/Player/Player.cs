@@ -1,160 +1,193 @@
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
-    public float forwardSpeed = 10f;       // Speed at which the character moves forward
-    public float laneDistance = 2.5f;      // Distance between lanes
-    public float laneSwitchSpeed = 10f;    // Speed of lane switching
-    private int currentLane = 1;           // Current lane (0, 1, 2 for 3 lanes)
+    public float forwardSpeed = 10f;
+    public float laneDistance = 2.5f;
+    public float laneSwitchSpeed = 10f;
 
     [Header("Jumping")]
-    public float jumpForce = 8f;           // Jump force applied when the player jumps
-    public float gravity = -30f;           // Custom gravity applied to the player
+    public float jumpForce = 8f;
+    public float gravity = -30f;
+
+    [Header("Slide")]
+    private float slideCooldown = .5f;
+    private bool canSlide = true;
 
     [Header("Ground Detection")]
-    public LayerMask groundMask;           // Layer mask to detect ground
-    public float groundRayLength = 1.2f;   // Ray length for ground detection
-    public Transform groundCheck;          // Position to check for ground
+    public Transform groundCheck;
+    public float groundRayLength = 1.2f;
+    public LayerMask groundMask;
 
-    private float verticalVelocity = 0f;    // Current vertical velocity (for jumping and gravity)
-    private bool isGrounded = false;        // Check if the player is on the ground
-    private float groundY;                 // Store the Y position of the ground
+    private int currentLane = 1;
+    private float verticalVelocity = 0f;
+    private bool isGrounded;
 
-    private Rigidbody rb;                  // Rigidbody component reference
+    [Header("Animation")]
+    public Animator animator;
+    public float animationSpeed = 1f;
+
+
+    private Rigidbody rb;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        rb.useGravity = false; // We handle gravity manually
-        rb.linearDamping = 0f;           // Prevent drag slowing down the player
-        rb.angularDamping = 0f;    // Prevent angular drag
-    }
-
-    void FixedUpdate()
-    {
-        // Update ground detection and handle movement
-        CheckGround();
-        ApplyMovement();
+        rb.isKinematic = true;
     }
 
     void Update()
     {
         HandleJump();
-        HandleLaneSwitch();
+        Debug.DrawRay(groundCheck.position + transform.forward * 0.5f, (Vector3.down + Vector3.forward * 0.4f).normalized * groundRayLength, Color.magenta);
+
+        if (Input.GetKeyDown(KeyCode.A)) MoveLeft();
+        if (Input.GetKeyDown(KeyCode.D)) MoveRight();
+        if(Input.GetKeyDown(KeyCode.S)) Slide();
+
     }
 
-    #region Movement
-
-    // Handle movement, lane switching, and applying gravity
-    void ApplyMovement()
+    void FixedUpdate()
     {
-        // Handle X (lane switching)
-        float targetX = (currentLane - 1) * laneDistance;
-        float smoothX = Mathf.Lerp(transform.position.x, targetX, Time.deltaTime * laneSwitchSpeed);
-
-        // Handle Z (forward speed)
-        Vector3 velocity = rb.linearVelocity;
-        velocity.x = smoothX - transform.position.x;  // Smooth lane switching on X-axis
-        velocity.z = forwardSpeed;                     // Constant forward movement (no gradual slowdown)
-
-        // Handle Y (gravity and jump)
-        if (isGrounded)
-        {
-            verticalVelocity = 0f; // No gravity when grounded
-        }
-        else
-        {
-            verticalVelocity += gravity * Time.deltaTime; // Apply gravity if not grounded
-        }
-
-        velocity.y = verticalVelocity; // Apply vertical velocity (jump/gravity)
-
-        // Apply the final movement using Rigidbody's velocity
-        rb.linearVelocity = velocity;
+        CheckGround();
+        ApplyMovement();
     }
 
-    #endregion
-
-    #region Jumping
-
-    // Handle jumping mechanics
     void HandleJump()
     {
         if (isGrounded && Input.GetKeyDown(KeyCode.Space))
         {
-            verticalVelocity = jumpForce; // Apply jump force
-            isGrounded = false;           // Mark as not grounded during jump
-        }
-    }
-
-    #endregion
-
-    #region Ground Detection
-
-    // Check if the player is grounded by casting a ray from the groundCheck position
-    void CheckGround()
-    {
-        RaycastHit hit;
-        if (Physics.Raycast(groundCheck.position, Vector3.down, out hit, groundRayLength, groundMask))
-        {
-            isGrounded = true;
-            groundY = hit.point.y;  // Store the ground Y position for consistency
-        }
-        else
-        {
+            verticalVelocity = jumpForce;
             isGrounded = false;
-        }
-
-        // Keep player aligned with the ground Y position to avoid floating or falling through
-        if (isGrounded)
-        {
-            rb.position = new Vector3(rb.position.x, groundY, rb.position.z);
+            animator.SetTrigger("Jump");
         }
     }
 
-    #endregion
+    void CheckGround()
+{
+    isGrounded = false;
 
-    #region Lane Switching
-
-    // Handle lane switching (left and right)
-    void HandleLaneSwitch()
+    // Cast from multiple points (center, front, back)
+    Vector3[] origins = new Vector3[]
     {
-        if (Input.GetKeyDown(KeyCode.A))
+        groundCheck.position,
+        groundCheck.position + transform.forward * 0.4f,
+        groundCheck.position - transform.forward * 0.4f
+    };
+
+    foreach (var origin in origins)
+    {
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, groundRayLength, groundMask))
         {
-            MoveLeft();
-        }
-        if (Input.GetKeyDown(KeyCode.D))
-        {
-            MoveRight();
+            if (verticalVelocity <= 0f)
+            {
+                isGrounded = true;
+                verticalVelocity = 0f;
+                break;
+            }
         }
     }
+}
 
-    // Move the player to the left lane
+    void Slide()
+    {
+        
+
+        if(!isGrounded)
+        {
+            //if in air when sliding, play downwards anim.
+
+            // Apply a downward force to simulate a slide
+            verticalVelocity = -jumpForce * 0.5f;
+        }
+        else if(isGrounded && canSlide)
+        {
+            // If on ground when sliding, play slide anim.
+            animator.SetTrigger("Slide");
+
+            // Reset vertical velocity to zero when sliding on the ground
+            verticalVelocity = 0f;
+
+            // Apply a forward force to simulate sliding
+            rb.AddForce(transform.forward * forwardSpeed * 0.5f, ForceMode.VelocityChange);
+
+            StartCoroutine(SlideCooldown());
+
+        }
+
+    }
+
+    private IEnumerator SlideCooldown()
+    {
+        canSlide = false;
+        yield return new WaitForSeconds(slideCooldown);
+        canSlide = true;
+    }
+
+    void ApplyMovement()
+    {
+        // Lateral lane switching (X axis)
+        float targetX = (currentLane - 1) * laneDistance;
+        float smoothX = Mathf.Lerp(transform.position.x, targetX, Time.deltaTime * laneSwitchSpeed);
+
+        // Apply gravity if airborne
+        if (!isGrounded)
+        {
+            verticalVelocity += gravity * Time.deltaTime;
+        }
+
+        float newY = transform.position.y + verticalVelocity * Time.deltaTime;
+
+        // Forward movement (Z) adjusted to slope normal
+        Vector3 forwardMovement = Vector3.forward * forwardSpeed * Time.deltaTime;
+        if (GetGroundNormal(out Vector3 groundNormal))
+        {
+            forwardMovement = Quaternion.FromToRotation(Vector3.up, groundNormal) * forwardMovement;
+        }
+
+        // Final movement vector
+        Vector3 newPosition = new Vector3(smoothX, newY, transform.position.z) + forwardMovement;
+        transform.position = newPosition;
+    }
+
+    bool GetGroundNormal(out Vector3 normal)
+{
+    normal = Vector3.up;
+
+    // Where we'll cast FROM: slightly ahead and down
+    Vector3 origin = groundCheck.position + transform.forward * 0.5f;
+
+    // We'll cast down and slightly forward to anticipate slopes
+    Vector3 castDir = (Vector3.down + Vector3.forward * 0.4f).normalized;
+
+    if (Physics.Raycast(origin, castDir, out RaycastHit hit, groundRayLength, groundMask))
+    {
+        normal = hit.normal;
+        return true;
+    }
+
+    return false;
+}
+
     public void MoveLeft()
     {
         currentLane = Mathf.Max(0, currentLane - 1);
     }
 
-    // Move the player to the right lane
     public void MoveRight()
     {
         currentLane = Mathf.Min(2, currentLane + 1);
     }
 
-    #endregion
-
-    #region Collision Handling
-
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Obstacle"))
         {
-            // Handle obstacle collision (you can reset the level or trigger a game over)
-            Debug.Log("Hit obstacle!");
+            Debug.Log("💥 Hit obstacle!");
+            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
         }
     }
-
-    #endregion
 }
