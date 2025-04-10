@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "bussklubben andra.sln"
+    "dotnet.defaultSolution": "bussklubben-andraspelet.sln"
 }

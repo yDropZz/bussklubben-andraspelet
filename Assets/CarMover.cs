@@ -7,7 +7,7 @@ public class CarMover : MonoBehaviour
 
     public void SetSpeed(float newSpeed)
     {
-        speed = newSpeed;
+        speed = -newSpeed;
     }
 
     void Update()

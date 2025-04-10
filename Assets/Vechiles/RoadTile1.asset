@@ -14,13 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   carPrefabs:
   - {fileID: 7775665122917320326, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
-  - {fileID: 7775665122917320326, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
-  - {fileID: 7775665122917320326, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
+  - {fileID: 7775665122917320326, guid: 4dacfe10736f2824aa6fee0c35305c19, type: 3}
+  - {fileID: 7775665122917320326, guid: ae3cf368af43f4a409589263f8184ae8, type: 3}
   carPosition:
-  - {x: 10, y: 0, z: 100}
   - {x: 0, y: 0, z: 50}
-  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 100}
+  - {x: -10, y: 0, z: 50}
   carSpeeds:
+  - 40
   - 20
-  - 15
-  - 0
+  - 10

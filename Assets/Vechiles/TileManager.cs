@@ -7,7 +7,7 @@ public class TileManager : MonoBehaviour
 
     public Transform player;
     public float spawnZ = 0f;
-    public float tileLength = 326f;
+    public float tileLength = 320f;
     public int tilesOnScreen = 5;
     public GameObject[] tilePrefabs;
 
@@ -44,6 +44,8 @@ public class TileManager : MonoBehaviour
         {
             go = Instantiate(tilePrefabs[Random.Range(0, tilePrefabs.Length)]);
         }
+
+        go.transform.position = new Vector3(0, 0, spawnZ);
 
         activeTiles.Add(go);
         spawnZ += tileLength;
