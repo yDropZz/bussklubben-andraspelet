@@ -3,16 +3,27 @@ using UnityEngine;
 public class CarMover : MonoBehaviour
 {
 
-    private float speed;
+    [SerializeField] private float speed;
 
     public void SetSpeed(float newSpeed)
     {
-        speed = -newSpeed;
+        speed = newSpeed;
     }
 
     void Update()
     {
-        transform.Translate(Vector3.forward * speed * Time.deltaTime);   
+        MoveForward();
+    }
+
+    private void MoveForward()
+    {
+        transform.Translate(Vector3.back * speed * Time.deltaTime);   
+    }
+
+    void Initialize()
+    {
+        // Set up the car
+        
     }
 
 }

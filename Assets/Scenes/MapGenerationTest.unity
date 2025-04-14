@@ -504,9 +504,12 @@ MonoBehaviour:
   player: {fileID: 1336871598}
   spawnZ: 0
   tileLength: 320
-  tilesOnScreen: 5
+  tilesOnScreen: 2
   tilePrefabs:
   - {fileID: 427933686269413028, guid: d2db6e30211be8849aabb3713e13144b, type: 3}
+  - {fileID: 427933686269413028, guid: 39624eeb46f06bd4c94babbfa25016bb, type: 3}
+  safeZone: 300
+  deleteZone: 400
 --- !u!4 &1729878532
 Transform:
   m_ObjectHideFlags: 0
@@ -580,7 +583,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1911277881283254852, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
       propertyPath: forwardSpeed
-      value: 32
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 1911277881283254852, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
       propertyPath: groundRayLength

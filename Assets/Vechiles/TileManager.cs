@@ -8,10 +8,11 @@ public class TileManager : MonoBehaviour
     public Transform player;
     public float spawnZ = 0f;
     public float tileLength = 320f;
-    public int tilesOnScreen = 5;
+    public int tilesOnScreen = 2;
     public GameObject[] tilePrefabs;
 
-    private float safeZone = 500f;
+    [SerializeField] private float safeZone = 800f;
+    [SerializeField] private float deleteZone = 200f;
     private List<GameObject> activeTiles = new List<GameObject>();
 
     void Start()
@@ -25,11 +26,16 @@ public class TileManager : MonoBehaviour
 
     void Update()
     {
-        if(player.position.z - safeZone > (spawnZ - tilesOnScreen * tileLength))
+        if(player.position.z + safeZone > spawnZ)
         {
             SpawnTile();
-            DeleteTile();
+
         }   
+
+        if(activeTiles.Count > 0 && player.position.z - deleteZone > activeTiles[0].transform.position.z)
+        {
+            DeleteTile();
+        }
 
     }
 
