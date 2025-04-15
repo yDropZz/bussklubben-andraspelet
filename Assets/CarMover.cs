@@ -3,7 +3,19 @@ using UnityEngine;
 public class CarMover : MonoBehaviour
 {
 
+    Transform playerPos;
     [SerializeField] private float speed;
+    private bool initialized = false;
+
+    void Awake()
+    {
+       playerPos = FindAnyObjectByType<PlayerController>().transform;
+    }
+
+    void Start()
+    {
+
+    }
 
     public void SetSpeed(float newSpeed)
     {
@@ -12,7 +24,16 @@ public class CarMover : MonoBehaviour
 
     void Update()
     {
-        MoveForward();
+        
+
+        if(initialized)
+        {
+            MoveForward();
+        }
+        else
+        {
+            Initialize();
+        }
     }
 
     private void MoveForward()
@@ -23,6 +44,17 @@ public class CarMover : MonoBehaviour
     void Initialize()
     {
         // Set up the car
+        if(playerPos.position.z + 250 >= transform.position.z)
+        {
+            initialized = true;
+            Debug.Log("Car initialized: " + gameObject.name);
+            speed = 50f;
+        }
+        else
+        {
+            initialized = false;
+            speed = 0;
+        }
         
     }
 

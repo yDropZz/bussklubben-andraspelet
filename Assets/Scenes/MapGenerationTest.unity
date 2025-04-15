@@ -270,7 +270,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 1336871598}
-  offset: {x: 0, y: 12, z: -32}
+  offset: {x: 0, y: 12, z: -20}
+  smoothSpeed: 0.15
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -583,7 +584,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1911277881283254852, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
       propertyPath: forwardSpeed
-      value: 50
+      value: 40
       objectReference: {fileID: 0}
     - target: {fileID: 1911277881283254852, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
       propertyPath: groundRayLength
@@ -591,7 +592,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1911277881283254852, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
       propertyPath: laneSwitchSpeed
-      value: 10
+      value: 7.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1911277881283254852, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
+      propertyPath: rocketBootsBoost
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 1911277881283254852, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
       propertyPath: groundedSnapOffset

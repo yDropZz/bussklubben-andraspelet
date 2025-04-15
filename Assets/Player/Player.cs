@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
+[RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
@@ -29,9 +29,14 @@ public class PlayerController : MonoBehaviour
     [Header("Animation")]
     public Animator animator;
     public float animationSpeed = 1f;
-
-
     private Rigidbody rb;
+
+    [Header("Rocket Boots")]
+    [SerializeField] private float rocketBootsBoost = 2f;
+    [SerializeField] private float rocketBootsDuration = 8f;
+    [SerializeField] GameObject rocketBootsPrefab1;
+    [SerializeField] GameObject rocketBootsPrefab2;
+    private bool rocketBoots = false;
 
     void Start()
     {
@@ -60,6 +65,15 @@ public class PlayerController : MonoBehaviour
     {
         if (isGrounded && Input.GetKeyDown(KeyCode.Space))
         {
+            if(rocketBoots)
+            {
+                // If rocket boots are active, apply the boost to jump force
+                verticalVelocity = jumpForce * rocketBootsBoost;
+                isGrounded = false;
+                animator.SetTrigger("Jump");
+                return;
+            }
+
             verticalVelocity = jumpForce;
             isGrounded = false;
             animator.SetTrigger("Jump");
@@ -188,6 +202,55 @@ public class PlayerController : MonoBehaviour
         {
             Debug.Log("💥 Hit obstacle!");
             UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        }
+        else if(other.CompareTag("Trampoline"))
+        {
+            verticalVelocity = jumpForce * 1.5f;
+        }
+        else if(other.CompareTag("Rocketboots"))
+        {
+            StartCoroutine(ApplyRocketBoots(rocketBootsDuration));
+            Destroy(other.gameObject);
+        }
+        else if(other.CompareTag("Buss"))
+        {
+            // Start driving full-speed in the air with the buss, apply rocket flares on it and everything.
+        }
+
+
+        /* Boosts List:
+        - Trampoline: 1 higher jump
+        - Rocket Boots: 1.5x jump force for 8 seconds
+        - Rocket Bus: Fly around in the bus for a set duration
+        - Magnetic Device: Pulls in all currency.
+        - Speed Boost: 1.5x Speed for 8 seconds.
+        - Umbrella: Hover for longer while in the air.
+        - Shield: Protects from 1 hit.
+        - Slow-Mo: Slows down time for 2 seconds.
+
+        */
+
+        // Continue else ifs for other triggers
+    }
+
+
+    IEnumerator ApplyRocketBoots(float duration)
+    {
+        if(!rocketBoots)
+        {
+            rocketBoots = true;
+            rocketBootsPrefab1.SetActive(true);
+            rocketBootsPrefab2.SetActive(true);
+            Debug.Log("rocket boots activated!");
+            yield return new WaitForSeconds(duration);
+            rocketBootsPrefab1.SetActive(false);
+            rocketBootsPrefab2.SetActive(false);
+            rocketBoots = false;
+            Debug.Log("Rocket boots deactivated!");
+        }
+        else
+        {
+            yield return null;
         }
     }
 }

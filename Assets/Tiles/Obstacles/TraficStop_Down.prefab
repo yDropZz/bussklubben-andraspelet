@@ -9,9 +9,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4475209650774397906}
-  m_Layer: 0
+  - component: {fileID: 7891955009043131923}
+  m_Layer: 7
   m_Name: TraficStop_Down
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -32,6 +33,27 @@ Transform:
   - {fileID: 8678559333609628670}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &7891955009043131923
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 623399134679169104}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 8.38, y: 2.52, z: 1.18}
+  m_Center: {x: 0.7, y: 6.41, z: 1.54}
 --- !u!1001 &9221919336632845333
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -99,6 +121,14 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: bf622bbbe4b13b3419a25402740ef179, type: 3}
       propertyPath: m_Name
       value: traficstop_down
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: bf622bbbe4b13b3419a25402740ef179, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 8164078558771037576, guid: bf622bbbe4b13b3419a25402740ef179, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
