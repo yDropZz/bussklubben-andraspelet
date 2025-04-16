@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
@@ -14,7 +14,7 @@ public class PlayerController : MonoBehaviour
     public float gravity = -30f;
 
     [Header("Slide")]
-    private float slideCooldown = .5f;
+    private float slideCooldown = 0.5f;
     private bool canSlide = true;
 
     [Header("Ground Detection")]
@@ -22,169 +22,163 @@ public class PlayerController : MonoBehaviour
     public float groundRayLength = 1.2f;
     public LayerMask groundMask;
 
-    private int currentLane = 1;
+    private int currentLane = 1; // 0 = Left, 1 = Center, 2 = Right
     private float verticalVelocity = 0f;
     private bool isGrounded;
 
     [Header("Animation")]
     public Animator animator;
     public float animationSpeed = 1f;
-    private Rigidbody rb;
 
     [Header("Rocket Boots")]
     [SerializeField] private float rocketBootsBoost = 2f;
     [SerializeField] private float rocketBootsDuration = 8f;
-    [SerializeField] GameObject rocketBootsPrefab1;
-    [SerializeField] GameObject rocketBootsPrefab2;
+    [SerializeField] private GameObject rocketBootsPrefab1;
+    [SerializeField] private GameObject rocketBootsPrefab2;
     private bool rocketBoots = false;
+
+    [Header("Rocket Bus")]
+    [SerializeField] private GameObject rocketBusPrefab;
+    [SerializeField] private float busSpeed = 120f;
+    [SerializeField] private float busDuration = 5f;
+    [SerializeField] private ParticleSystem busParticleSystem;
+    private bool inBus = false;
+    private bool ignoreNormalMovement = false;
+
+    private CharacterController controller;
+    private float targetX; // Store the target X position for lane switching
 
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        rb.isKinematic = true;
+        controller = GetComponent<CharacterController>();
     }
 
     void Update()
     {
-        HandleJump();
-        Debug.DrawRay(groundCheck.position + transform.forward * 0.5f, (Vector3.down + Vector3.forward * 0.4f).normalized * groundRayLength, Color.magenta);
-
-        if (Input.GetKeyDown(KeyCode.A)) MoveLeft();
-        if (Input.GetKeyDown(KeyCode.D)) MoveRight();
-        if(Input.GetKeyDown(KeyCode.S)) Slide();
-
+        HandleInput();
+        CheckGround();
     }
+
+    void HandleInput()
+    {
+        //if (Input.GetKeyDown(KeyCode.A)) MoveLeft();
+        //if (Input.GetKeyDown(KeyCode.D)) MoveRight();
+        if(!inBus)
+        {
+        HandleLaneSwitching();
+        if (Input.GetKeyDown(KeyCode.W)) HandleJump();
+        if (Input.GetKeyDown(KeyCode.Space)) HandleJump();
+        if (Input.GetKeyDown(KeyCode.S)) Slide();
+        }
+    }
+
+    
 
     void FixedUpdate()
     {
-        CheckGround();
         ApplyMovement();
     }
 
+    private void HandleLaneSwitching()
+{
+    if (Input.GetKeyDown(KeyCode.A))
+    {
+        currentLane = Mathf.Max(0, currentLane - 1); // Move left
+    }
+    if (Input.GetKeyDown(KeyCode.D))
+    {
+        currentLane = Mathf.Min(2, currentLane + 1); // Move right
+    }
+
+    // Calculate the target X position based on the current lane
+    targetX = (currentLane - 1) * laneDistance;
+}
+
     void HandleJump()
     {
-        if (isGrounded && Input.GetKeyDown(KeyCode.Space))
+        if (isGrounded)
         {
-            if(rocketBoots)
-            {
-                // If rocket boots are active, apply the boost to jump force
-                verticalVelocity = jumpForce * rocketBootsBoost;
-                isGrounded = false;
-                animator.SetTrigger("Jump");
-                return;
-            }
-
-            verticalVelocity = jumpForce;
+            verticalVelocity = jumpForce * (rocketBoots ? rocketBootsBoost : 1f);
             isGrounded = false;
             animator.SetTrigger("Jump");
         }
     }
 
-    void CheckGround()
-{
-    isGrounded = false;
-
-    // Cast from multiple points (center, front, back)
-    Vector3[] origins = new Vector3[]
-    {
-        groundCheck.position,
-        groundCheck.position + transform.forward * 0.4f,
-        groundCheck.position - transform.forward * 0.4f
-    };
-
-    foreach (var origin in origins)
-    {
-        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, groundRayLength, groundMask))
-        {
-            if (verticalVelocity <= 0f)
-            {
-                isGrounded = true;
-                verticalVelocity = 0f;
-                break;
-            }
-        }
-    }
-}
-
     void Slide()
     {
-        
+        if (!canSlide) return;
 
-        if(!isGrounded)
+        if (!isGrounded)
         {
-            //if in air when sliding, play downwards anim.
-
-            // Apply a downward force to simulate a slide
             verticalVelocity = -jumpForce * 0.5f;
         }
-        else if(isGrounded && canSlide)
+        else
         {
-            // If on ground when sliding, play slide anim.
             animator.SetTrigger("Slide");
-
-            // Reset vertical velocity to zero when sliding on the ground
-            verticalVelocity = 0f;
-
-            // Apply a forward force to simulate sliding
-            rb.AddForce(transform.forward * forwardSpeed * 0.5f, ForceMode.VelocityChange);
-
             StartCoroutine(SlideCooldown());
-
         }
-
     }
 
-    private IEnumerator SlideCooldown()
+    IEnumerator SlideCooldown()
     {
         canSlide = false;
         yield return new WaitForSeconds(slideCooldown);
         canSlide = true;
     }
 
-    void ApplyMovement()
-    {
-        // Lateral lane switching (X axis)
-        float targetX = (currentLane - 1) * laneDistance;
-        float smoothX = Mathf.Lerp(transform.position.x, targetX, Time.deltaTime * laneSwitchSpeed);
-
-        // Apply gravity if airborne
-        if (!isGrounded)
-        {
-            verticalVelocity += gravity * Time.deltaTime;
-        }
-
-        float newY = transform.position.y + verticalVelocity * Time.deltaTime;
-
-        // Forward movement (Z) adjusted to slope normal
-        Vector3 forwardMovement = Vector3.forward * forwardSpeed * Time.deltaTime;
-        if (GetGroundNormal(out Vector3 groundNormal))
-        {
-            forwardMovement = Quaternion.FromToRotation(Vector3.up, groundNormal) * forwardMovement;
-        }
-
-        // Final movement vector
-        Vector3 newPosition = new Vector3(smoothX, newY, transform.position.z) + forwardMovement;
-        transform.position = newPosition;
-    }
-
     bool GetGroundNormal(out Vector3 normal)
-{
-    normal = Vector3.up;
-
-    // Where we'll cast FROM: slightly ahead and down
-    Vector3 origin = groundCheck.position + transform.forward * 0.5f;
-
-    // We'll cast down and slightly forward to anticipate slopes
-    Vector3 castDir = (Vector3.down + Vector3.forward * 0.4f).normalized;
-
-    if (Physics.Raycast(origin, castDir, out RaycastHit hit, groundRayLength, groundMask))
     {
-        normal = hit.normal;
-        return true;
+        normal = Vector3.up;
+
+        // Cast slightly ahead and down to read slopes
+        Vector3 origin = groundCheck.position + transform.forward * 0.5f;
+        Vector3 castDir = (Vector3.down + Vector3.forward * 0.4f).normalized;
+
+        if (Physics.Raycast(origin, castDir, out RaycastHit hit, groundRayLength, groundMask))
+        {
+            normal = hit.normal;
+            return true;
+        }
+
+        return false;
     }
 
-    return false;
+    
+
+    void ApplyMovement()
+{
+    if (ignoreNormalMovement) return; // Skip normal movement during bus power-up
+
+    // --- LANE SWITCHING ---
+    float smoothedX = Mathf.Lerp(transform.position.x, targetX, laneSwitchSpeed * Time.deltaTime);
+    float deltaX = smoothedX - transform.position.x;
+
+    // --- GRAVITY ---
+    if (!isGrounded)
+    {
+        verticalVelocity += gravity * Time.deltaTime;
+    }
+
+    // --- VERTICAL ---
+    float deltaY = verticalVelocity * Time.deltaTime;
+
+    // --- FORWARD MOVEMENT ---
+    float deltaZ = forwardSpeed * Time.deltaTime;
+
+    // Combine movement
+    Vector3 move = new Vector3(deltaX, deltaY, deltaZ);
+    controller.Move(move);
 }
+
+    void CheckGround()
+    {
+        isGrounded = controller.isGrounded;
+
+        if (isGrounded && verticalVelocity < 0f)
+        {
+            verticalVelocity = -1f;
+        }
+    }
 
     public void MoveLeft()
     {
@@ -203,54 +197,119 @@ public class PlayerController : MonoBehaviour
             Debug.Log("💥 Hit obstacle!");
             UnityEngine.SceneManagement.SceneManager.LoadScene(0);
         }
-        else if(other.CompareTag("Trampoline"))
+        else if (other.CompareTag("Trampoline"))
         {
             verticalVelocity = jumpForce * 1.5f;
         }
-        else if(other.CompareTag("Rocketboots"))
+        else if (other.CompareTag("Rocketboots"))
         {
             StartCoroutine(ApplyRocketBoots(rocketBootsDuration));
             Destroy(other.gameObject);
         }
-        else if(other.CompareTag("Buss"))
+        else if (other.CompareTag("Buss"))
         {
-            // Start driving full-speed in the air with the buss, apply rocket flares on it and everything.
+            StartCoroutine(ApplyRocketBus(busDuration));
+            Destroy(other.gameObject);
         }
-
-
-        /* Boosts List:
-        - Trampoline: 1 higher jump
-        - Rocket Boots: 1.5x jump force for 8 seconds
-        - Rocket Bus: Fly around in the bus for a set duration
-        - Magnetic Device: Pulls in all currency.
-        - Speed Boost: 1.5x Speed for 8 seconds.
-        - Umbrella: Hover for longer while in the air.
-        - Shield: Protects from 1 hit.
-        - Slow-Mo: Slows down time for 2 seconds.
-
-        */
-
-        // Continue else ifs for other triggers
     }
-
 
     IEnumerator ApplyRocketBoots(float duration)
     {
-        if(!rocketBoots)
-        {
-            rocketBoots = true;
-            rocketBootsPrefab1.SetActive(true);
-            rocketBootsPrefab2.SetActive(true);
-            Debug.Log("rocket boots activated!");
-            yield return new WaitForSeconds(duration);
-            rocketBootsPrefab1.SetActive(false);
-            rocketBootsPrefab2.SetActive(false);
-            rocketBoots = false;
-            Debug.Log("Rocket boots deactivated!");
-        }
-        else
-        {
-            yield return null;
-        }
+        if (rocketBoots) yield break;
+
+        rocketBoots = true;
+        rocketBootsPrefab1.SetActive(true);
+        rocketBootsPrefab2.SetActive(true);
+        Debug.Log("Rocket boots activated!");
+        yield return new WaitForSeconds(duration);
+        rocketBootsPrefab1.SetActive(false);
+        rocketBootsPrefab2.SetActive(false);
+        rocketBoots = false;
+        Debug.Log("Rocket boots deactivated!");
     }
+
+    IEnumerator ApplyRocketBus(float duration)
+{
+    if (inBus) yield break;
+
+    inBus = true;
+    ignoreNormalMovement = true;
+
+    // Play particle effects for the bus
+    if (busParticleSystem != null) busParticleSystem.Play();
+    rocketBusPrefab.SetActive(true);
+
+    // Store original forward speed
+    float originalSpeed = forwardSpeed;
+    forwardSpeed = busSpeed;
+
+    // --- Upward Phase ---
+    float targetY = 20f; // Height to reach
+    float upwardDuration = 1.5f; // Time to reach target height
+    float elapsedTime = 0f;
+    float startY = transform.position.y;
+
+    while (elapsedTime < upwardDuration)
+    {
+        HandleLaneSwitching(); // Allow lane switching while flying
+
+        // Smooth upward movement
+        float t = elapsedTime / upwardDuration;
+        float y = Mathf.Lerp(startY, targetY, t); // Smoothly interpolate Y position
+        float deltaY = y - transform.position.y;  // Get difference in Y
+        float deltaX = Mathf.Lerp(transform.position.x, targetX, laneSwitchSpeed * Time.deltaTime) - transform.position.x; // Smooth X movement
+        Vector3 move = new Vector3(deltaX, deltaY, forwardSpeed * Time.deltaTime);
+        controller.Move(move);
+
+        elapsedTime += Time.deltaTime;
+        yield return null;
+    }
+
+    // --- Hover Phase ---
+    float hoverTime = duration - upwardDuration; // Remaining time after upward phase
+    elapsedTime = 0f;
+    float hoverY = transform.position.y; // Current Y position during hover
+
+    while (elapsedTime < hoverTime)
+    {
+        HandleLaneSwitching(); // Allow lane switching while hovering
+
+        // Lock Y position to the hoverY value and move forward
+        float deltaX = Mathf.Lerp(transform.position.x, targetX, laneSwitchSpeed * Time.deltaTime) - transform.position.x; // Smooth X movement
+        Vector3 move = new Vector3(deltaX, 0f, forwardSpeed * Time.deltaTime);
+        controller.Move(move);
+
+        elapsedTime += Time.deltaTime;
+        yield return null;
+    }
+
+    // --- Descend Phase ---
+    float descendDuration = 1f; // Duration of the descent
+    elapsedTime = 0f;
+    float groundY = 1f; // Ground level
+
+    while (elapsedTime < descendDuration)
+    {
+        HandleLaneSwitching(); // Allow lane switching while descending
+
+        // Smooth descent
+        float t = elapsedTime / descendDuration;
+        float y = Mathf.Lerp(hoverY, groundY, t); // Smoothly interpolate down to the ground
+        float deltaY = y - transform.position.y;
+        float deltaX = Mathf.Lerp(transform.position.x, targetX, laneSwitchSpeed * Time.deltaTime) - transform.position.x; // Smooth X movement
+        Vector3 move = new Vector3(deltaX, deltaY, forwardSpeed * Time.deltaTime);
+        controller.Move(move);
+
+        elapsedTime += Time.deltaTime;
+        yield return null;
+    }
+
+    // --- End Bus Ride ---
+    if (busParticleSystem != null) busParticleSystem.Stop();
+    rocketBusPrefab.SetActive(false);
+    forwardSpeed = originalSpeed; // Restore the original forward speed
+    inBus = false;
+    ignoreNormalMovement = false; // Allow normal movement again
+}
+
 }

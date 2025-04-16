@@ -70,6 +70,7 @@ Transform:
   - {fileID: 3733159182563043328}
   - {fileID: 911515437229175736}
   - {fileID: 6357578467025889815}
+  - {fileID: 6619716505761275303}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &419933841227695459
@@ -648,7 +649,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3358146963268472493, guid: ae3cf368af43f4a409589263f8184ae8, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 303.67
+      value: 319.8
       objectReference: {fileID: 0}
     - target: {fileID: 3358146963268472493, guid: ae3cf368af43f4a409589263f8184ae8, type: 3}
       propertyPath: m_LocalRotation.w
@@ -681,6 +682,10 @@ PrefabInstance:
     - target: {fileID: 7775665122917320326, guid: ae3cf368af43f4a409589263f8184ae8, type: 3}
       propertyPath: m_Name
       value: RedTruck
+      objectReference: {fileID: 0}
+    - target: {fileID: 7805348450608994452, guid: ae3cf368af43f4a409589263f8184ae8, type: 3}
+      propertyPath: speed
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2613,4 +2618,70 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 5448267485989042762, guid: 6a1c189bf34ef59428c0b893c6dd6e3c, type: 3}
   m_PrefabInstance: {fileID: 8406730301386258530}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &8450861524378735370
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3209513948067682775}
+    m_Modifications:
+    - target: {fileID: 3358146963268472493, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -10
+      objectReference: {fileID: 0}
+    - target: {fileID: 3358146963268472493, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3358146963268472493, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 320
+      objectReference: {fileID: 0}
+    - target: {fileID: 3358146963268472493, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3358146963268472493, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3358146963268472493, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3358146963268472493, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3358146963268472493, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3358146963268472493, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3358146963268472493, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7775665122917320326, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
+      propertyPath: m_Name
+      value: BlueCar
+      objectReference: {fileID: 0}
+    - target: {fileID: 7805348450608994452, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
+      propertyPath: speed
+      value: 3
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
+--- !u!4 &6619716505761275303 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3358146963268472493, guid: 558e1485475bd3c4880dbf2203b65e53, type: 3}
+  m_PrefabInstance: {fileID: 8450861524378735370}
   m_PrefabAsset: {fileID: 0}
