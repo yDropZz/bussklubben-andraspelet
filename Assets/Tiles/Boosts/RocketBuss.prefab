@@ -49,7 +49,6 @@ MonoBehaviour:
   rotationSpeed: 50
   floatAmplitude: 0.5
   floatFrequency: 1
-  floatSpeed: 1
 --- !u!135 &887443016177856163
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -69,7 +68,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 1
+  m_Radius: 2.28
   m_Center: {x: 0, y: 0.66, z: 0}
 --- !u!1001 &6104843416608814002
 PrefabInstance:

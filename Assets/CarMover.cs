@@ -4,7 +4,8 @@ public class CarMover : MonoBehaviour
 {
 
     Transform playerPos;
-    [SerializeField] private float speed;
+    private float speed;
+    [SerializeField] private float newSpeed = 20f;
     private bool initialized = false;
 
     void Awake()
@@ -48,7 +49,8 @@ public class CarMover : MonoBehaviour
         {
             initialized = true;
             Debug.Log("Car initialized: " + gameObject.name);
-            speed = 50f;
+            speed = newSpeed;
+            Destroy(gameObject, 10f);
         }
         else
         {

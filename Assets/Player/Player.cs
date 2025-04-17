@@ -45,6 +45,15 @@ public class PlayerController : MonoBehaviour
     private bool inBus = false;
     private bool ignoreNormalMovement = false;
 
+    [Header("Magnet")]
+    [SerializeField] private float magnetDuration = 5f;
+    [SerializeField] private GameObject magnetPrefab;
+    [SerializeField] private float magnetPullSpeed = 10f;
+    [SerializeField] private float magnetRadius = 5f;
+    private bool magnet = false;
+    private bool ignoreMagnet = false;
+
+
     private CharacterController controller;
     private float targetX; // Store the target X position for lane switching
 
@@ -110,13 +119,27 @@ public class PlayerController : MonoBehaviour
 
         if (!isGrounded)
         {
-            verticalVelocity = -jumpForce * 0.5f;
+            verticalVelocity = -jumpForce * 1f;
         }
         else
         {
             animator.SetTrigger("Slide");
+            StartCoroutine(DecreaseHitbox(0.5f));
             StartCoroutine(SlideCooldown());
         }
+    }
+
+    IEnumerator DecreaseHitbox(float duration)
+    {
+        float originalHeight = controller.height;
+        Vector3 oringinalCenter = controller.center;
+
+        controller.height = 1;
+        controller.center = new Vector3(0, 1, 0);
+        yield return new WaitForSeconds(duration);
+
+        controller.height = originalHeight;
+        controller.center = oringinalCenter;
     }
 
     IEnumerator SlideCooldown()
@@ -211,6 +234,18 @@ public class PlayerController : MonoBehaviour
             StartCoroutine(ApplyRocketBus(busDuration));
             Destroy(other.gameObject);
         }
+        else if(other.CompareTag("Coin"))
+        {
+            Destroy(other.gameObject);
+            // Add coin collection logic here
+            // can prolly access gamemanger instance and add coin count
+            // GameManager.Instance.AddCoin(1);
+        }
+        else if(other.CompareTag("Magnet"))
+        {
+            StartCoroutine(ApplyMagnet(magnetDuration));
+            Destroy(other.gameObject);
+        }
     }
 
     IEnumerator ApplyRocketBoots(float duration)
@@ -227,6 +262,63 @@ public class PlayerController : MonoBehaviour
         rocketBoots = false;
         Debug.Log("Rocket boots deactivated!");
     }
+
+    private void OnDrawGizmosSelected()
+{
+    Gizmos.color = Color.yellow;
+    Gizmos.DrawWireSphere(transform.position, magnetRadius);
+}
+
+IEnumerator ApplyMagnet(float duration)
+{
+    if (magnet) yield break;
+
+    Debug.Log("Magnet activated!");
+    magnet = true;
+    magnetPrefab.SetActive(true);
+
+    float elapsedTime = 0f;
+
+    while (elapsedTime < duration)
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, magnetRadius, LayerMask.GetMask("Coin"));
+        foreach (Collider hitCollider in hitColliders)
+        {
+            if (hitCollider.CompareTag("Coin"))
+            {
+                float magnetPullStrength = forwardSpeed * 1.25f;
+
+                // Remove coin object spin script
+                hitCollider.GetComponent<ObjectSpin>().enabled = false;
+
+
+                Transform coinTransform = hitCollider.transform;
+
+                // Calculate pull direction
+                Vector3 direction = (transform.position - coinTransform.position);
+                float distance = direction.magnitude;
+
+                // Apply movement toward player
+                coinTransform.position += direction.normalized * (magnetPullStrength + distance) * Time.deltaTime;
+
+                // Collect coin if close
+                if (distance < 0.1f)
+                {
+                    Destroy(hitCollider.gameObject);
+                    Debug.Log("Coin collected!");
+                }
+            }
+        }
+
+        elapsedTime += Time.deltaTime;
+        yield return null;
+    }
+
+    magnet = false;
+    magnetPrefab.SetActive(false);
+    Debug.Log("Magnet deactivated!");
+}
+
 
     IEnumerator ApplyRocketBus(float duration)
 {

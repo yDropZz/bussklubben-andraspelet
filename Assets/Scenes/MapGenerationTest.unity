@@ -119,6 +119,11 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &202642883 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3670529137829202596, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
+  m_PrefabInstance: {fileID: 1857018341}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -447,10 +452,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Composition:
-    ScreenPosition: {x: -0.0011110827, y: 0.00750003}
+    ScreenPosition: {x: -0.0011111498, y: 0.007500127}
     DeadZone:
       Enabled: 1
-      Size: {x: 0.2, y: 0.2}
+      Size: {x: 0.39777774, y: 0.39499995}
     HardLimits:
       Enabled: 0
       Size: {x: 0.8, y: 0.8}
@@ -653,6 +658,8 @@ MonoBehaviour:
   - {fileID: 427933686269413028, guid: d2db6e30211be8849aabb3713e13144b, type: 3}
   - {fileID: 427933686269413028, guid: 39624eeb46f06bd4c94babbfa25016bb, type: 3}
   - {fileID: 427933686269413028, guid: 15bb3d466a1ca06468c66e8d1a633518, type: 3}
+  - {fileID: 427933686269413028, guid: 7ab278e990157ab4d93a965c84117fc6, type: 3}
+  - {fileID: 427933686269413028, guid: 442cf07a4ea3cb84eb71550a5de88988, type: 3}
   safeZone: 300
   deleteZone: 400
 --- !u!4 &1729878532
@@ -724,7 +731,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8666887020102710934, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
       propertyPath: m_Height
-      value: 4.12
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: -8666887020102710934, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
       propertyPath: m_Center.y
@@ -744,7 +751,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1911277881283254852, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
       propertyPath: forwardSpeed
-      value: 32
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 1911277881283254852, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
+      propertyPath: magnetPrefab
+      value: 
+      objectReference: {fileID: 202642883}
+    - target: {fileID: 1911277881283254852, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
+      propertyPath: magnetRadius
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 1911277881283254852, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
+      propertyPath: magnetDuration
+      value: 312
       objectReference: {fileID: 0}
     - target: {fileID: 1911277881283254852, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
       propertyPath: groundRayLength
@@ -753,6 +772,10 @@ PrefabInstance:
     - target: {fileID: 1911277881283254852, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
       propertyPath: laneSwitchSpeed
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1911277881283254852, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
+      propertyPath: magnetPullSpeed
+      value: 35
       objectReference: {fileID: 0}
     - target: {fileID: 1911277881283254852, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
       propertyPath: rocketBootsBoost
@@ -816,6 +839,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4739603382499662051, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
+    - {fileID: 7885536254842660840, guid: 62cbc4fcfd41dd846a4f47a6a24f646e, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

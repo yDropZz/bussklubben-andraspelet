@@ -8,6 +8,8 @@ TagManager:
   - Trampoline
   - Rocketboots
   - Buss
+  - Coin
+  - Magnet
   layers:
   - Default
   - TransparentFX
@@ -17,7 +19,7 @@ TagManager:
   - UI
   - Ground
   - Obstacle
-  - 
+  - Coin
   - 
   - 
   - 
