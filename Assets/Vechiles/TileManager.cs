@@ -10,6 +10,7 @@ public class TileManager : MonoBehaviour
     public float tileLength = 320f;
     public int tilesOnScreen = 2;
     public GameObject[] tilePrefabs;
+    public int tileSpawned = 0;
 
     [SerializeField] private float safeZone = 800f;
     [SerializeField] private float deleteZone = 200f;
@@ -42,13 +43,24 @@ public class TileManager : MonoBehaviour
     void SpawnTile(bool forceDefault = false)
     {
         GameObject go;
+        int randomIndex = Random.Range(0, tilePrefabs.Length);
+        int attempts = 0;
+        // Ensure we don't spawn the same tile twice in a row  
+        while(randomIndex == tileSpawned && attempts < 10)
+        {
+            randomIndex = Random.Range(0, tilePrefabs.Length);
+            attempts++;
+        }
+//
         if(forceDefault)
         {
-            go = Instantiate(tilePrefabs[0]);
+            go = Instantiate(tilePrefabs[randomIndex]);
+            tileSpawned = randomIndex;
         }
         else
         {
-            go = Instantiate(tilePrefabs[Random.Range(0, tilePrefabs.Length)]);
+            go = Instantiate(tilePrefabs[randomIndex]);
+            tileSpawned = randomIndex;
         }
 
         go.transform.position = new Vector3(0, 0, spawnZ);

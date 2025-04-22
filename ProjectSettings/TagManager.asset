@@ -10,6 +10,7 @@ TagManager:
   - Buss
   - Coin
   - Magnet
+  - TwoX
   layers:
   - Default
   - TransparentFX

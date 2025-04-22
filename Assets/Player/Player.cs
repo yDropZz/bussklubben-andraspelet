@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -36,6 +37,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject rocketBootsPrefab1;
     [SerializeField] private GameObject rocketBootsPrefab2;
     private bool rocketBoots = false;
+    private float busLaneSwitchSpeedMultiplier = 2f;
+    private bool isFlashingBoots = false;
 
     [Header("Rocket Bus")]
     [SerializeField] private GameObject rocketBusPrefab;
@@ -44,6 +47,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private ParticleSystem busParticleSystem;
     private bool inBus = false;
     private bool ignoreNormalMovement = false;
+    private bool isFlashingBus = false;
 
     [Header("Magnet")]
     [SerializeField] private float magnetDuration = 5f;
@@ -52,6 +56,16 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float magnetRadius = 5f;
     private bool magnet = false;
     private bool ignoreMagnet = false;
+    private bool isFlashingMagnet = false;
+
+    [Header("2x Multiplier")]
+    private bool twoXActive = false;
+
+    [Header("Powerups/Coins prefabs")]
+    [SerializeField] private GameObject[] prefabsToSpawn; // Array of prefabs to spawn
+    [SerializeField] private GameObject coinPrefab; 
+    bool powerUpSpawned = false;
+    private bool isFlashingTwoX = false;
 
 
     private CharacterController controller;
@@ -237,15 +251,36 @@ public class PlayerController : MonoBehaviour
         else if(other.CompareTag("Coin"))
         {
             Destroy(other.gameObject);
-            // Add coin collection logic here
-            // can prolly access gamemanger instance and add coin count
-            // GameManager.Instance.AddCoin(1);
+            MainManager.Instance.AddCoins(1);
+            if(twoXActive)
+            {
+                MainManager.Instance.AddCoins(1);
+            }
         }
         else if(other.CompareTag("Magnet"))
         {
             StartCoroutine(ApplyMagnet(magnetDuration));
             Destroy(other.gameObject);
         }
+        else if(other.CompareTag("TwoX"))
+        {
+            Destroy(other.gameObject);
+            if(!twoXActive)
+            {
+                StartCoroutine(ApplyTwoXMultiplier(5f));
+            }
+        }
+    }
+
+    IEnumerator ApplyTwoXMultiplier(float duration)
+    {
+        if (twoXActive) yield break;
+
+        twoXActive = true;
+        Debug.Log("2x Multiplier activated!");
+        yield return new WaitForSeconds(duration);
+        twoXActive = false;
+        Debug.Log("2x Multiplier deactivated!");
     }
 
     IEnumerator ApplyRocketBoots(float duration)
@@ -361,13 +396,17 @@ IEnumerator ApplyMagnet(float duration)
     float hoverTime = duration - upwardDuration; // Remaining time after upward phase
     elapsedTime = 0f;
     float hoverY = transform.position.y; // Current Y position during hover
+    powerUpSpawned = false; // Reset power-up spawn flag
+
+    // Spawn all coins instantly
+    SpawnCoinsInstantly(transform.position.z, 75, 5f); // Spawn 50 coins, spaced 5 units apart
 
     while (elapsedTime < hoverTime)
     {
         HandleLaneSwitching(); // Allow lane switching while hovering
 
         // Lock Y position to the hoverY value and move forward
-        float deltaX = Mathf.Lerp(transform.position.x, targetX, laneSwitchSpeed * Time.deltaTime) - transform.position.x; // Smooth X movement
+        float deltaX = Mathf.Lerp(transform.position.x, targetX, busLaneSwitchSpeedMultiplier * laneSwitchSpeed * Time.deltaTime) - transform.position.x; // Smooth X movement
         Vector3 move = new Vector3(deltaX, 0f, forwardSpeed * Time.deltaTime);
         controller.Move(move);
 
@@ -380,7 +419,7 @@ IEnumerator ApplyMagnet(float duration)
     elapsedTime = 0f;
     float groundY = 1f; // Ground level
 
-    while (elapsedTime < descendDuration)
+    while (elapsedTime < descendDuration && !isGrounded)
     {
         HandleLaneSwitching(); // Allow lane switching while descending
 
@@ -403,5 +442,54 @@ IEnumerator ApplyMagnet(float duration)
     inBus = false;
     ignoreNormalMovement = false; // Allow normal movement again
 }
+
+
+void SpawnCoinsInstantly(float zStartPosition, int totalCoins, float zSpacing)
+{
+    float[] lanePositions = { -laneDistance, 0f, laneDistance }; // Assumes 3 lanes: Left, Center, Right
+    float yPosition = 20f;
+
+    // Zig-zag pattern
+
+    List<int[]> zigZagPatterns = new List<int[]>
+    {
+        new int[] { 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1 ,1 ,1 ,1 ,1},
+        new int[] { 2 ,2 ,2 ,2,2,2,2,2,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,0,0,0,0,0,0,0,1,1,1,1,1,1},
+        new int[] {1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,1,1,1,1,1,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2}
+
+    };
+
+
+    int[] selectedPattern = zigZagPatterns[Random.Range(0, zigZagPatterns.Count)];
+    int patternIndex = 0;
+
+    for (int i = 0; i < totalCoins; i++)
+    {
+        float spawnZ = zStartPosition + (i * zSpacing) + 25f;
+        int laneIndex = selectedPattern[patternIndex];
+
+        float spawnX = lanePositions[laneIndex];
+
+        if (coinPrefab != null)
+        {
+            Instantiate(coinPrefab, new Vector3(spawnX, yPosition, spawnZ), Quaternion.identity);
+        }
+        else
+        {
+            Debug.LogError("Coin prefab is null!");
+        }
+
+        if(i == totalCoins / 2 && !powerUpSpawned)
+        {
+            // Spawn a power-up in the middle of the coins
+            GameObject prefabToSpawn = prefabsToSpawn[Random.Range(0, prefabsToSpawn.Length)];
+            Instantiate(prefabToSpawn, new Vector3(spawnX, yPosition + 1f, spawnZ), Quaternion.identity);
+            powerUpSpawned = true;
+        }
+
+        patternIndex = (patternIndex + 1) % selectedPattern.Length; // Loop through the pattern
+    }
+}
+
 
 }
