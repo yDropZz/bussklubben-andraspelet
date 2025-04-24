@@ -5,39 +5,113 @@ using UnityEngine.UI;
 
 public class BoostUIManager : MonoBehaviour
 {
-    [SerializeField] private GameObject boostUIPrefab;
-    [SerializeField] private Transform boostPanel;
+    
+    [Header("Boots")]
+    [SerializeField] private GameObject bootsBoostObject;
+    [SerializeField] private Image bootsProgressBar;
 
-    private Dictionary<string, GameObject> activeBoosts = new();
+    [Header("Bus")]
+    [SerializeField] private GameObject busBoostObject;
+    [SerializeField] private Image busProgressBar;
 
-    public void ShowBoost(string boostId, Sprite icon, float duration)
+    [Header("Magnet")]
+    [SerializeField] private GameObject magnetBoostObject;
+    [SerializeField] private Image magnetProgressBar;
+
+    [Header("TwoXMultiplier")]
+    [SerializeField] private GameObject twoXMultiplierBoostObject;
+    [SerializeField] private Image twoXMultiplierProgressBar;
+
+    void Update()
     {
-        if (activeBoosts.ContainsKey(boostId))
+
+        // increase progress on filled image
+        if (bootsBoostObject.activeSelf)
         {
-            Destroy(activeBoosts[boostId]);
-            activeBoosts.Remove(boostId);
+            if (bootsProgressBar.fillAmount < 1f)
+            {
+                bootsProgressBar.fillAmount += Time.deltaTime / 5f; // 5 seconds to fill
+            }
+            else
+            {
+                bootsBoostObject.SetActive(false);
+                bootsProgressBar.fillAmount = 0f;
+            }
         }
 
-        GameObject ui = Instantiate(boostUIPrefab, boostPanel);
-        ui.transform.Find("Icon").GetComponent<Image>().sprite = icon;
-
-        activeBoosts[boostId] = ui;
-        StartCoroutine(UpdateBoostProgress(boostId, ui, duration));
     }
 
-    private IEnumerator UpdateBoostProgress(string boostId, GameObject ui, float duration)
+    public void StartBoost(string boostType, float duration)
     {
-        Image progressBar = ui.transform.Find("ProgressBar").GetComponent<Image>();
-        float elapsed = 0f;
-
-        while (elapsed < duration)
+        switch(boostType)
         {
-            elapsed += Time.deltaTime;
-            progressBar.fillAmount = 1f - (elapsed / duration);
+            case "Boots":
+                bootsProgressBar.fillAmount = 0f;
+                StartCoroutine(FillProgressBar("Boots", duration));
+                break;
+            case "Bus":
+                busProgressBar.fillAmount = 0f;
+                StartCoroutine(FillProgressBar("Bus", duration));
+                break;
+            case "Magnet":
+                magnetProgressBar.fillAmount = 0f;
+                StartCoroutine(FillProgressBar("Magnet", duration));
+                break;
+            case "TwoXMultiplier":
+                twoXMultiplierProgressBar.fillAmount = 0f;
+                StartCoroutine(FillProgressBar("TwoXMultiplier", duration));
+                break;
+            default:
+                Debug.LogError("Invalid boost type: " + boostType);
+                break;
+        }
+    }
+
+    IEnumerator FillProgressBar(string boostType, float duration)
+    {
+        GameObject boostObject = null;
+        Image progressBar = null;
+        float time = 0f;
+    
+    if(boostType == "Boots")
+    {
+        progressBar = bootsProgressBar;
+        boostObject = bootsBoostObject;
+    }
+    else if(boostType == "Bus")
+    {
+        progressBar = busProgressBar;
+        boostObject = busBoostObject;
+    }
+    else if(boostType == "Magnet")
+    {
+        progressBar = magnetProgressBar;
+        boostObject = magnetBoostObject;
+    }
+    else if(boostType == "TwoXMultiplier")
+    {
+        progressBar = twoXMultiplierProgressBar;
+        boostObject = twoXMultiplierBoostObject;
+    }
+
+        // Set boost object active
+        boostObject.SetActive(true);
+
+        // Reset the progress bar
+        progressBar.fillAmount = 0f;
+
+        // Fill the progress bar over the duration
+        while (time < duration)
+        {
+            time += Time.deltaTime;
+            progressBar.fillAmount = time / duration;
             yield return null;
         }
 
-        Destroy(ui);
-        activeBoosts.Remove(boostId);
+        boostObject.SetActive(false);
+
     }
+
+    
+
 }

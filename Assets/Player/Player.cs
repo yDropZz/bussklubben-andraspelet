@@ -68,12 +68,31 @@ public class PlayerController : MonoBehaviour
     private bool isFlashingTwoX = false;
 
 
+// Mobile controls ---
+private Vector2 startTouchPosition;
+private Vector2 endTouchPosition;
+private float minSwipeDistance = 50f; // Minimum swipe distance in pixels
+    
+
+    private BoostUIManager boostUIManager;
+
+
     private CharacterController controller;
     private float targetX; // Store the target X position for lane switching
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
+
+    }
+
+    void Awake()
+    {
+        boostUIManager = FindAnyObjectByType<BoostUIManager>();
+        if (boostUIManager == null)
+        {
+            Debug.LogError("BoostUIManager not found in the scene!");
+        }   
     }
 
     void Update()
@@ -83,17 +102,50 @@ public class PlayerController : MonoBehaviour
     }
 
     void HandleInput()
+{
+    // Desktop controls
+    if (!inBus)
     {
-        //if (Input.GetKeyDown(KeyCode.A)) MoveLeft();
-        //if (Input.GetKeyDown(KeyCode.D)) MoveRight();
-        if(!inBus)
-        {
         HandleLaneSwitching();
-        if (Input.GetKeyDown(KeyCode.W)) HandleJump();
-        if (Input.GetKeyDown(KeyCode.Space)) HandleJump();
+        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.Space)) HandleJump();
         if (Input.GetKeyDown(KeyCode.S)) Slide();
+    }
+
+    // Mobile swipe controls
+    if (Input.touchCount == 1)
+    {
+        Touch touch = Input.GetTouch(0);
+
+        switch (touch.phase)
+        {
+            case TouchPhase.Began:
+                startTouchPosition = touch.position;
+                break;
+
+            case TouchPhase.Ended:
+                endTouchPosition = touch.position;
+                Vector2 swipeDelta = endTouchPosition - startTouchPosition;
+
+                if (swipeDelta.magnitude > minSwipeDistance)
+                {
+                    float x = swipeDelta.x;
+                    float y = swipeDelta.y;
+
+                    if (Mathf.Abs(x) > Mathf.Abs(y))
+                    {
+                        if (x > 0) MoveRight();
+                        else MoveLeft();
+                    }
+                    else
+                    {
+                        if (y > 0) HandleJump();
+                        else Slide();
+                    }
+                }
+                break;
         }
     }
+}
 
     
 
@@ -242,14 +294,18 @@ public class PlayerController : MonoBehaviour
         {
             StartCoroutine(ApplyRocketBoots(rocketBootsDuration));
             Destroy(other.gameObject);
+            boostUIManager.StartBoost("Boots", rocketBootsDuration);
         }
         else if (other.CompareTag("Buss"))
         {
             StartCoroutine(ApplyRocketBus(busDuration));
             Destroy(other.gameObject);
+            boostUIManager.StartBoost("Bus", busDuration);
         }
         else if(other.CompareTag("Coin"))
         {
+            SoundManager.Instance.PlayCoinSound();
+
             Destroy(other.gameObject);
             MainManager.Instance.AddCoins(1);
             if(twoXActive)
@@ -261,13 +317,15 @@ public class PlayerController : MonoBehaviour
         {
             StartCoroutine(ApplyMagnet(magnetDuration));
             Destroy(other.gameObject);
+            boostUIManager.StartBoost("Magnet", magnetDuration);
         }
         else if(other.CompareTag("TwoX"))
         {
             Destroy(other.gameObject);
             if(!twoXActive)
             {
-                StartCoroutine(ApplyTwoXMultiplier(5f));
+                StartCoroutine(ApplyTwoXMultiplier(10f));
+                boostUIManager.StartBoost("TwoXMultiplier", 10f);
             }
         }
     }
@@ -410,6 +468,13 @@ IEnumerator ApplyMagnet(float duration)
         Vector3 move = new Vector3(deltaX, 0f, forwardSpeed * Time.deltaTime);
         controller.Move(move);
 
+        // turn on rocket particle emission
+        if(busParticleSystem != null)
+        {
+            var emission = busParticleSystem.emission;
+            emission.enabled = true;
+        }
+
         elapsedTime += Time.deltaTime;
         yield return null;
     }
@@ -430,6 +495,9 @@ IEnumerator ApplyMagnet(float duration)
         float deltaX = Mathf.Lerp(transform.position.x, targetX, laneSwitchSpeed * Time.deltaTime) - transform.position.x; // Smooth X movement
         Vector3 move = new Vector3(deltaX, deltaY, forwardSpeed * Time.deltaTime);
         controller.Move(move);
+
+        var emission = busParticleSystem.emission;
+        emission.enabled = false; // Disable particle emission during descent
 
         elapsedTime += Time.deltaTime;
         yield return null;
